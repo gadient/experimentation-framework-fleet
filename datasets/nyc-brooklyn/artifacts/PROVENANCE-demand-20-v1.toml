@@ -1,0 +1,47 @@
+# Written by eda/fit_demand.py. Every artifact an evaluation depends on is named and hashed here,
+# so a result can be traced to the data it came from.
+
+[fit]
+generated = "2026-09-03T13:49:11-05:00"
+months = ["2025-06", "2025-07"]
+places = 20
+requests = 7089190
+cells = 38400
+timestamp = "request_datetime — the rider asking, not the pickup"
+counted = "shared and wheelchair-accessible requests included"
+excluded = "trips leaving Brooklyn; heat wave; Independence Day"
+unobserved_cell = "rate 0.0, declared — notebook 05 sections 4.1 and 10.1"
+level = "market demand; the pack multiplies by capture share alpha"
+
+[days]
+mon_wed = 24
+sat = 7
+sun = 8
+thu_fri = 15
+
+[per_type.mon_wed]
+requests_per_day = 115694.4
+empty_pct = 4.21
+under_one_per_day_pct = 29.23
+
+[per_type.sat]
+requests_per_day = 166266.9
+empty_pct = 5.33
+under_one_per_day_pct = 19.8
+
+[per_type.sun]
+requests_per_day = 122469.2
+empty_pct = 6.27
+under_one_per_day_pct = 25.47
+
+[per_type.thu_fri]
+requests_per_day = 144593.5
+empty_pct = 4.26
+under_one_per_day_pct = 23.71
+
+[inputs]
+raw_0 = "fhvhv_tripdata_2025-06.parquet"
+raw_1 = "fhvhv_tripdata_2025-07.parquet"
+
+[outputs]
+"demand-20-v1.csv" = "d77139f7bda0455a69c6dd928aecfdb6000e7bed4d647b647bd2b2e342b79ec9"

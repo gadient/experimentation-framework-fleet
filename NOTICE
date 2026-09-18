@@ -1,0 +1,60 @@
+Fleet Policy Experimentation Framework
+Copyright 2026 the Fleet Policy Experimentation Framework authors
+
+This product includes software developed for the Fleet Policy Experimentation Framework.
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+================================================================================
+New York City Taxi and Limousine Commission trip record data
+================================================================================
+
+No TLC trip record is redistributed in this repository.
+
+The exploratory analysis and the fitted Brooklyn parameters derive from the New
+York City Taxi and Limousine Commission's High Volume For-Hire Vehicle trip
+records, together with the TLC's taxi zone lookup table and taxi zone shapefile.
+These are published by the TLC at
+
+    https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+
+and are subject to the TLC's own terms of use, which govern their use and
+redistribution and are not altered by this project's license.
+
+**How to obtain the source data.** `eda/fetch_data.py` downloads the pinned
+files and records each one's size and SHA-256 digest. Each is compared against
+`eda/raw-digests.toml`, which is tracked and holds the bytes the fitted
+artifacts were made from, so a file that differs from them is reported:
+
+    python eda/fetch_data.py
+
+The files land in `data/raw/`, which this repository does not track.
+
+**What this repository does carry.** `datasets/nyc-brooklyn/artifacts/` holds
+aggregate statistics computed from those records — a per-cell travel-duration
+table of percentile values, a mean distance per origin-destination pair, a
+demand rate table, and a day-type table. They contain no trip record, no
+timestamp, no route, and no vehicle, driver, license or company identifier. Each
+value is a count or a rate over an origin, destination, hour and day-type cell,
+computed across 7,089,190 requests for the demand table; the rarest cells rest
+on a single journey.
+
+`config/zoning/` is not tracked by this repository. `eda/fit_travel.py` writes
+the fitted Brooklyn place map there when it runs, and `eda/zoning.py` regenerates
+the two lookup tables that group the TLC's taxi-zone identifiers by borough and
+by service zone. The provenance of the artifacts above — the source window, the
+exclusions applied, the day counts, and a digest of each artifact — is recorded
+in `datasets/nyc-brooklyn/artifacts/PROVENANCE-20-v1.toml` and
+`PROVENANCE-demand-20-v1.toml`, and the code that produces them is
+`eda/fit_travel.py` and `eda/fit_demand.py`.
+
+The fleet described by these inputs is a hypothetical operation defined for
+study purposes. The artifacts record demand and travel conditions observed in
+Brooklyn. They do not describe an existing service.
+
+================================================================================
+AI usage
+================================================================================
+
+This work was carried out with AI assistance throughout: design discussion,
+implementation, documentation and review. The prompts, the design decisions and
+the judgments behind them are the author's.

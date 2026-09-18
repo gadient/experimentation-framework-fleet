@@ -1,0 +1,36 @@
+# Written by eda/fit_travel.py. Every artifact an evaluation depends on is named and hashed here,
+# so a result can be traced to the data it came from.
+
+[fit]
+generated = "2026-09-03T13:28:46-05:00"
+months = ["2025-06", "2025-07"]
+places = 20
+journeys = 7857311
+knots = 48
+min_journeys = 30
+shared_matched = "excluded"
+events_included = "heat wave, Independence Day weekend — travel keeps both, notebook 04 section 1.1"
+
+[coverage]
+cells = 9600
+measured_pct = 84.08
+
+[day_type]
+treatment = "multiplier on the pooled cell, not a fifth index"
+types = ["mon_wed", "thu_fri", "sat", "sun"]
+factors = 96
+widest_hour_span_pct = 24.1
+rung_distance_prior = 72
+rung_measured = 8072
+rung_neighbouring_hours = 732
+rung_whole_route = 724
+
+[inputs]
+raw_0 = "fhvhv_tripdata_2025-06.parquet"
+raw_1 = "fhvhv_tripdata_2025-07.parquet"
+
+[outputs]
+"brooklyn-20-v1.csv" = "43babdd2befb4aa5aab067b509dcde0b127ea797c7a1b078e8a4eaf9fca96bae"
+"duration-20-v1.csv" = "99c75478bbf98fb159c70c64fc621667cd6b10a71bce53541a2085c3e233fcfc"
+"distance-20-v1.csv" = "f0f75b32979e4737043b03c3c87fdf13b31215e2f27369f529be5bc6f59e8c26"
+"daytype-20-v1.csv" = "b8a7af1239c0dc9fbd756b16d73edfbf1ec0c8ddfcec6e6361032a1991275160"

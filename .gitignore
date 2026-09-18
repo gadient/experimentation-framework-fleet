@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Raw inputs and regenerated tables
+data/raw/
+config/zoning/
+
+# LaTeX build by-products; the compiled PDF itself is published
+optimization/model/*.aux
+optimization/model/*.fdb_latexmk
+optimization/model/*.fls
+optimization/model/*.log
+optimization/model/*.out
+
+# Local assets; nothing in this directory is published.
+docs/assets/*
+
+# Scratch notebooks
+eda/*scratch*.ipynb
+eda/0z_*.ipynb

@@ -1,0 +1,70 @@
+# Expected SHA-256 of every raw TLC artifact the analysis reads.
+#
+# `data/raw/` is not tracked, so before this file existed nothing in the repository recorded which
+# bytes the fits were made from. `eda/fetch_data.py` wrote `data/raw/MANIFEST.txt` from whatever was
+# on disk at the time, which means the manifest could never disagree with the disk: it recorded, it
+# did not verify. This file is the expectation the disk is checked against.
+#
+# Two places read it. `eda/common.py` verifies the files a notebook is about to open, once per
+# process, before duckdb sees them. `eda/fetch_data.py` compares after each fetch and reports a
+# difference instead of silently writing the new digest over the old one.
+#
+# **A mismatch has two causes and the tools do not guess between them.** The local copy may be
+# damaged or truncated, or the TLC may have republished that month in place — they revise files
+# after publication, so a changed digest is not by itself evidence of a corrupt download. Re-fetch
+# with `--force` and compare. If upstream genuinely moved, update the entry here in its own commit,
+# so a change to the empirical inputs appears in the history rather than passing unnoticed.
+#
+# Verification is a report, never a refusal: a run that cannot confirm its inputs still proceeds and
+# says so. Refusing would make an upstream revision look like a broken repository.
+#
+# Digests computed 2026-09-17 by reading the working copy, and cross-checked against the
+# `data/raw/MANIFEST.txt` written 2026-09-03. All eight agreed.
+
+[artifacts."fhvhv_tripdata_2025-06.parquet"]
+sha256 = "f26bbe980f037a15f47f40da4ad7102b7aaebe0c9a8f3c1f6d058c6652007c88"
+bytes = 490819474
+url = "https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_2025-06.parquet"
+role = "calibration window, first month"
+
+[artifacts."fhvhv_tripdata_2025-07.parquet"]
+sha256 = "cae4e3d120f9af1a7369dad915dfe9beadda914b08a38ee8c045a4d09f085712"
+bytes = 487222980
+url = "https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_2025-07.parquet"
+role = "calibration window, second month"
+
+[artifacts."fhvhv_tripdata_2025-08.parquet"]
+sha256 = "e2efc965d31bd10f23224f5e007b463d037c45fbdaa6ded23c5deab01ec8d3b7"
+bytes = 479574607
+url = "https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_2025-08.parquet"
+role = "test month, scored against and never fitted on"
+
+[artifacts."taxi_zone_lookup.csv"]
+sha256 = "1a99e105092230f8620f301edcca7f80d3080642ff404d28ed957d3fa222c8ed"
+bytes = 12331
+url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
+role = "LocationID to zone name and borough, 263 TLC taxi zones"
+
+[artifacts."taxi_zones.zip"]
+sha256 = "f6d711917bb4340f8f644d5366c51665489eb2d426dd1a4a55677721ae5adf17"
+bytes = 1022574
+url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip"
+role = "zone polygons: centroids for the zone matrix, geometry for choropleths"
+
+[artifacts."fhv_base_aggregate_2025-06.csv"]
+sha256 = "24be1a076f6d98f958bc3c054fed1242879ff8ad7253c95077b47bd4dd557867"
+bytes = 29720
+url = "https://data.cityofnewyork.us/resource/2v9c-2k7f.csv"
+role = "per-base dispatched trips and unique vehicles; the only public source for vehicle counts"
+
+[artifacts."fhv_base_aggregate_2025-07.csv"]
+sha256 = "ebb35d215166197cc6cc8390bb72138a6f84b5b69af7b6cc104539a5e90458a0"
+bytes = 30686
+url = "https://data.cityofnewyork.us/resource/2v9c-2k7f.csv"
+role = "per-base dispatched trips and unique vehicles"
+
+[artifacts."fhv_base_aggregate_2025-08.csv"]
+sha256 = "1238a0713546c30930cdc31e6c8a7a7df2ae8d8d438455a29b4a6c27a8f047aa"
+bytes = 30754
+url = "https://data.cityofnewyork.us/resource/2v9c-2k7f.csv"
+role = "per-base dispatched trips and unique vehicles"

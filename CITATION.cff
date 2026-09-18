@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Fleet Policy Experimentation Framework"
+abstract: >-
+  An experimentation framework for evaluating fleet dispatch policies under
+  matched stochastic conditions. The work combines empirically fitted
+  Brooklyn demand and travel inputs, paired comparisons with predefined
+  improvement and guardrail thresholds, and a mixed integer perfect
+  information reference.
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/gadient/experimentation-framework-fleet"
+version: "0.0.1"
+keywords:
+  - exploratory data analysis
+  - fleet operations
+  - policy evaluation
+  - stochastic experiments
+  - electric vehicle charging
+  - operations research
+  - mixed-integer programming
+  - design of experiments
+authors:
+  - name: "gadient"

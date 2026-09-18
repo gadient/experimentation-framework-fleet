@@ -1,0 +1,55 @@
+# New York / Brooklyn instance data.
+#
+# Fitted values live in `artifacts/`, with their provenance recorded beside them. This file holds
+# the declared ones: vehicle physics, the depot, the capture share and the service threshold. Each
+# is an assumption, and the comment says what it rests on.
+
+[vehicle]
+capacity = 85                  # kWh
+consumption_wh_per_km = 217    # 0.35 kWh/mi
+hotel_load_occupied = 4000     # W
+hotel_load_driving_empty = 1250
+
+[depot]
+# Crown Heights North / Crown Heights South / Prospect-Lefferts Gardens.
+#
+# Two independent weightings of the fitted rate table agree on this place: the centroid of Brooklyn
+# weighted by where requests start, and weighted by where trips end, land 30 m apart and both
+# resolve to it. They agree because Brooklyn's net flow is balanced — record 11 of
+# `docs/eda-findings-nyc.md`, +423 trips on 5.35M for a month — so origins and destinations have
+# nearly the same spatial distribution, and the distinction between the two weightings is real in
+# principle and worth nothing here.
+#
+# Mean straight-line distance to a trip endpoint, traffic-weighted: 4.49 km to a pickup, 4.47 km
+# from a dropoff. The geographic centroid, BK-03, costs 4.85 and 4.83, about 8% more.
+#
+# These are straight lines between place centres rather than routes, so this is a starting point
+# for siting rather than a siting result. The trade the distances do not show: BK-17 is Brooklyn's
+# second-busiest place at 11,562 requests a day, so the depot sits inside the demand it serves.
+zone_id = "BK-17"
+
+[demand]
+# The capture share is how much of the borough's observed market demand is offered to one fleet. It
+# sets the level; the fitted rate table sets the distribution over space and time.
+#
+# Section 9 of `eda/05_demand.ipynb` sets the level arithmetically: 5% needs 121% of a 100-vehicle
+# fleet at the evening peak on riders alone, and 3% is the service-balanced level at that fleet size.
+# 5% is a supply-constrained configuration; an unsaturated fleet wants 3%.
+#
+# The value is held fixed while fleet size varies. Deriving it from fleet size would raise offered
+# demand in step with capacity, hold utilisation fixed by construction, and drive the marginal value
+# of a vehicle toward zero as an artefact of the design.
+capture_share_pct = 5
+
+[kpi]
+# Ten minutes rather than five. Five is an industry-norm figure argued rather than fitted, and on
+# this zoning it is unreachable: of the 400 place pairs, none has an expected travel time at or
+# under five minutes. The minimum is 7.2 minutes and the median 25.3, and a vehicle standing in the
+# rider's own place still needs 9.5 to 10.7 minutes to reach them, because a place here is about a
+# square mile.
+#
+# At five, the measure reports the left tail of the travel distribution rather than the policy. Ten
+# is the smallest defensible value: it clears the 7.2-minute floor with a margin and stays tight
+# enough that a policy has to work for it. This is a property of Brooklyn's geometry, and a coarser
+# or finer division of the borough would move it again.
+service_threshold = 10

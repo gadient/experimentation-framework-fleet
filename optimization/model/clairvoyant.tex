@@ -1,0 +1,357 @@
+\input{preamble}
+
+\title{\vspace{-1.25em}\textbf{A Clairvoyant Benchmark for Fleet Dispatch}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{abstract}
+An electric mobility service must assign vehicles to arriving requests while managing their location,
+availability and stored energy. A policy comparison estimates the effect of changing those operating
+decisions, but it does not show how close either policy came to the best result available from the
+same fleet state and realized demand. This note presents a framework for constructing a Clairvoyant
+(perfect information) benchmark for that purpose. For each realized day, a mixed-integer program observes the
+complete request sequence and maximizes the number of riders collected within the service threshold.
+The perfect-information optimum, denoted by $N^*$, is not computed directly because the formulation does
+not represent the departure time of every vehicle movement. The program is solved with conservative and
+optimistic travel durations. Execution of the conservative plan establishes an attainable value
+$L\leq N^*$. The optimistic value $U$ satisfies $N^*\leq U$ when the formulation covers every trajectory
+permitted by the operating model; the restrictions listed in \cref{sec:conditions} make $U$ conditional.
+An operating policy may exceed $L$, while $N^*$ remains the perfect-information optimum. Results are
+not published here.
+\end{abstract}
+
+\section{Operational setting and benchmark purpose}
+
+The operating model represents a battery-electric fleet operating within a closed service region. Each
+request has an arrival time, an origin, a destination and a rider-specific tolerance for the quoted
+pickup time. An assigned vehicle drives empty to the origin, collects the rider and completes the
+passenger journey. The vehicle remains unavailable until that work is complete. A request may instead
+be declined, rejected by the system or abandoned while waiting.
+
+At regular invocation times, a policy can assign available vehicles, direct idle vehicles to another
+zone and send vehicles to charge. These actions compete for the same fleet capacity. Repositioning may
+place a vehicle closer to a later request, but the movement consumes time and energy and may leave the
+origin zone uncovered. Charging restores energy while temporarily removing a vehicle from service.
+Assignments made now therefore change the locations, energy levels and availability times presented to
+later requests.
+
+\paragraph{Timely service.}
+The primary outcome is timely service. In the Brooklyn configuration, a request is timely when pickup
+occurs no more than ten minutes after the request arrives. The corresponding rate divides timely pickups
+by every request arriving in the reporting window, including declines, system rejections and
+abandonments. The benchmark maximizes the count because the number of arrivals is fixed within a
+realized instance.
+
+\paragraph{Choice of ten-minute threshold.}
+The ten-minute threshold is a scenario parameter rather than an estimate fitted from observed pickup
+times. In the pooled Uber and Lyft records used for the Monday--Wednesday demand calculation, completed
+Brooklyn trips have a mean request-to-pickup interval of 4.5 minutes. That sample excludes requests that
+were never served and is therefore unsuitable for estimating rider patience or a service requirement.
+The observed interval also reflects operations in physical space, whereas the zonal model represents
+vehicle and rider locations through aggregate zones.
+
+The Brooklyn inputs aggregate the borough into 20 decision zones. Under that representation, none of the
+400 expected zone-pair travel times is five minutes or less; the minimum is 7.2 minutes. Even pickup
+within the rider's zone is represented by approximately 9.5--10.7 minutes of travel. A five-minute
+threshold would consequently measure the lower tail of the zonal travel approximation and would leave
+little scope for a dispatch policy to affect the result. Ten minutes was selected as the shortest
+threshold that clears the model's travel-time floor while remaining restrictive. This choice is a
+modeling tradeoff: modeled timely service at ten minutes should not be compared directly with the
+observed 4.5-minute mean as if the two quantities were measured under the same spatial representation
+or sampling process.
+
+A paired experiment determines whether one policy improves timely service relative to
+another under matched random inputs. Similar policy results remain ambiguous: the policies may both
+be close to the best attainable result, or both may leave substantial capacity unused. A reference
+optimization is needed to distinguish those cases.
+
+The Clairvoyant (perfect information) benchmark provides that reference. It is computed
+retrospectively from the realized requests, the rider attributes and the fleet state at the start of
+the reporting window. It can coordinate vehicle paths with knowledge of future requests, while an
+operating policy uses only the information available when it acts. The benchmark measures operational
+headroom. Its use of future requests precludes deployment as an online policy.
+
+Each benchmark instance is conditional on one realized request sequence, one reporting window and the
+fleet state at the start of that window. Its conclusions apply to the declared operating and input
+models. Physical fleet performance, latent demand and demand outside the modeled service region are
+outside the resulting claim.
+
+\section{Inputs and interpretation}
+\label{sec:study}
+
+\subsection{Input data}
+
+The Brooklyn inputs are fitted from New York City Taxi and Limousine Commission High Volume For Hire
+Vehicle records for June and July 2025. The demand artifact contains 7,089,190 completed trips with both
+endpoints in Brooklyn, represented by day type, origin, destination and request hour. The travel
+artifact contains 7,857,311 completed passenger journeys, represented by origin, destination and hour.
+Brooklyn's 61 taxi zones are aggregated into 20 contiguous decision zones.
+
+The source records contain completed trips rather than all attempted requests. Demand levels are
+therefore conditional on the fitted completed-trip distribution and a declared capture share. The
+capture share and the fleet size are scenario parameters rather than estimates of market share or of
+the fleet required to serve Brooklyn. The benchmark measures attainable performance within this
+constructed operating environment.
+
+Travel dispersion is disabled when a benchmark instance is built. A movement then takes the expected
+duration in the matrix cell selected by its origin, destination and departure hour, and the benchmark
+cannot improve its objective by selecting favorable travel-time draws.
+
+\subsection{Outputs and interpretation}
+
+For each policy and realized day, the inputs to the benchmark are the policy's timely pickup count
+$N_p$ and the fleet state at the start of the reporting window. The benchmark combines that state with
+the realized requests during the reporting window and reports two optimization values, $L$ and $U$.
+The paired policy experiment estimates the effect of changing the online policy. The benchmark
+comparison assesses how much timely service remained attainable once the starting state had been fixed.
+
+For interpretation, $N_p$ records what the evaluated online policy achieved, and $L$ records what one
+executable plan with future information achieved. $U$ is an optimistic comparison whose upper-bound
+interpretation depends on the coverage conditions in \cref{sec:conditions}. The mathematical target
+$N^*$ is the best timely pickup count over all trajectories permitted by the operating model from the
+same initial state.
+
+A policy can exceed $L$ because $L$ is the value of one feasible conservative plan. If $N_p>L$, the
+policy itself supplies a stronger attainable value, so the lower benchmark becomes $\max\{L,N_p\}$.
+When the upper coverage condition also holds, a policy's share of the optimum satisfies
+\begin{equation}
+  \frac{N_p}{U}
+  \leq
+  \frac{N_p}{N^*}
+  \leq
+  \frac{N_p}{\max\{L,N_p\}}.
+  \label{eq:share}
+\end{equation}
+
+\section{Perfect-information objective}
+\label{sec:objective}
+
+Fix a realized day, a reporting window $[T_0,T_1)$ and the fleet state at $T_0$. Let $\Sigma$ denote
+the trajectories that can be generated from that state by sequences of instructions permitted by the
+dispatch rules. For trajectory $\sigma\in\Sigma$, let $N(\sigma)$ be the number of riders whose requests
+arrive in the reporting window and whose pickups occur within the service threshold $\delta$. The
+perfect-information optimum is
+\begin{equation}
+  N^* = \max_{\sigma\in\Sigma} N(\sigma).
+  \label{eq:nstar}
+\end{equation}
+
+For an evaluated policy, let $N_p$ be its timely pickup count on the same realized day. The policy
+trajectory belongs to $\Sigma$, so
+\begin{equation}
+  N_p \leq N^*.
+  \label{eq:policy-optimum}
+\end{equation}
+This relation follows from the definition of $N^*$ and does not depend on the mixed-integer model.
+
+The benchmark observes the request time, origin and destination of every request in the window; the
+rider's assignment deadline and acceptance threshold; the expected travel duration and distance for
+each movement; and every vehicle's location, next available time and stored energy at $T_0$. These
+quantities make each benchmark instance deterministic.
+
+\section{Why two optimization problems are solved}
+\label{sec:bounds}
+
+Travel duration depends on departure hour. Passenger journeys begin at modeled pickup times, so the
+formulation selects their departure hour exactly. Other movements begin at times that the formulation
+does not represent explicitly. These include the initial movement from a vehicle to its first rider,
+the approach between consecutive riders, movements to and from the depot, and the within-zone movement
+to a pickup. Their feasible departure intervals can cross an hour boundary inside the reporting window.
+
+An exact time-dependent formulation would add a departure time and hour-selection variables to every
+affected movement, together with constraints permitting a vehicle to wait before departure. The
+formulation instead assigns one duration to each affected movement before solving. Let
+$\pi^{\min}$ assign the shortest expected duration over the feasible departure hours and let
+$\pi^{\max}$ assign the longest. Write $V(\pi)$ for the optimal objective under duration assignment
+$\pi$.
+
+\paragraph{Optimistic solve.}
+\begin{equation}
+  U = V(\pi^{\min}).
+\end{equation}
+The minimum durations relax the travel-time component of the problem. If every trajectory permitted by the operating model
+is represented by the remaining formulation, each trajectory is feasible in the optimistic solve and
+$N^*\leq U$. This coverage condition is material; the current exceptions are listed in
+\cref{sec:conditions}.
+
+\paragraph{Conservative solve.}
+\begin{equation}
+  L = V(\pi^{\max}).
+\end{equation}
+The maximum durations produce a conservative rider schedule. That schedule is executed under the same
+operating rules. When execution reproduces its rider-level outcomes, it provides a realized trajectory
+with objective $L$, establishing $L\leq N^*$.
+
+When both conditions hold, the two values give
+\begin{equation}
+  L \leq N^* \leq U.
+  \label{eq:bracket}
+\end{equation}
+
+The approach keeps the mixed-integer program small and quick to solve while measuring the
+approximation introduced by time-dependent travel: the difference $U-L$ bounds the effect of fixing
+each affected movement's duration before solving.
+
+\section{Mixed-integer formulation}
+\label{sec:formulation}
+
+\subsection{Instance data}
+
+Let $\mathcal R$ be the requests arriving in the reporting window and $\mathcal V$ the vehicles in the
+fleet. For request $j$, the instance contains request time $a_j$, origin $o_j$, destination $d_j$,
+assignment deadline $\bar D_j$, acceptance threshold $\theta_j$, and within-zone pickup duration
+$\iota_j$. Its feasible pickup interval is
+\begin{equation}
+  \ell_j = a_j + \iota_j,
+  \qquad
+  u_j = \min\{\bar D_j + \theta_j,\ T_1-T_0\}.
+  \label{eq:pickup-window}
+\end{equation}
+A request with $\ell_j>u_j$ cannot be collected within the modeled window and is removed.
+
+For vehicle $v$, the instance contains its zone $z_v$, next available time $F_v$ and stored energy
+$B_v$ at $T_0$. The energy required for a movement from $o$ to $d$ is $\epsilon(o,d)$. Battery
+capacity is $\bar B$, and the reserve floor $\underline B$ is the largest energy required to reach the
+depot from any zone in the instance.
+
+\subsection{Time-dependent passenger journeys}
+
+Pickup time $t_j$ determines the departure hour of the passenger journey. The pickup interval is split
+at each hour boundary into segments $s=0,\ldots,m_j$. Segment $s$ has endpoints
+$[\sigma_{js},\varepsilon_{js}]$ and passenger journey duration $\rho_{js}$. Binary $h_{js}$ selects
+the applicable segment:
+\begin{align}
+  \textstyle\sum_{s\geq1} h_{js} &\leq 1, \\
+  t_j &\geq \sigma_{j0} + \textstyle\sum_{s\geq1}(\sigma_{js}-\sigma_{j0})h_{js}, \\
+  t_j &\leq \varepsilon_{j0} + \textstyle\sum_{s\geq1}(\varepsilon_{js}-\varepsilon_{j0})h_{js}, \\
+  \rho_j(h) &= \rho_{j0} + \textstyle\sum_{s\geq1}(\rho_{js}-\rho_{j0})h_{js}.
+  \label{eq:ride-duration}
+\end{align}
+Passenger journey duration is therefore determined by the hour containing the modeled pickup time.
+
+\subsection{Network and decision variables}
+
+A vehicle path contains three types of arc: an entry arc $(v,j)\in\mathcal A^E$ from a vehicle's
+initial state to its first rider; a rider arc $(i,j)\in\mathcal A^R$ between consecutive riders; and a
+depot arc $(i,j,k)\in\mathcal A^D$ that inserts a charging visit of $k$ fifteen-minute increments
+between two riders. An arc is omitted when its estimated arrival time would cause the rider to reject
+the quote.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Variable & Domain & Interpretation \\
+\midrule
+$y_j$ & $\{0,1\}$ & request $j$ is collected \\
+$w_j$ & $\{0,1\}$ & request $j$ is collected within $\delta$ \\
+$t_j$ & $[\ell_j,u_j]$ & pickup time of request $j$ \\
+$h_{js}$ & $\{0,1\}$ & pickup $j$ occurs in hour segment $s\geq1$ \\
+$e_{vj}$, $z_{ij}$, $x_{ijk}$ & $\{0,1\}$ & entry, rider or depot arc is selected \\
+$\mu_{ij}$, $\widetilde\mu_{ijk}$ & $\{0,1\}$ & vehicle waits in $o_j$ before request $j$ arrives \\
+$b_j$ & $[\underline B,\bar B]$ & energy stored after delivering request $j$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Principal constraints}
+
+Each vehicle enters at most one path. Each collected request has one predecessor and at most one
+successor:
+\begin{align}
+  \textstyle\sum_j e_{vj} &\leq 1 && \forall v, \\
+  \textstyle\sum_v e_{vj} + \sum_i z_{ij} + \sum_{i,k}x_{ijk} &= y_j && \forall j, \\
+  \textstyle\sum_{j'} z_{jj'} + \sum_{j',k}x_{jj'k} &\leq y_j && \forall j, \\
+  w_j &\leq y_j && \forall j.
+\end{align}
+
+For rider arcs, the pickup of $j$ follows the pickup and passenger journey of $i$ and the approach from
+$d_i$ to $o_j$. Depot arcs add the two depot movements and the charging interval:
+\begin{align}
+  t_j &\geq t_i + \rho_i(h) + p_{ij} - M_{ij}(1-z_{ij}), \\
+  t_j &\geq t_i + \rho_i(h) + q_i + k\kappa + r_j - M_{ijk}(1-x_{ijk}).
+  \label{eq:sequence}
+\end{align}
+Here $p_{ij}$ is the direct approach duration, $q_i$ the duration to the depot, $r_j$ the duration from
+the depot, and $\kappa=15$ minutes. Each big-$M$ constant is set to the smallest value that deactivates
+its row when the corresponding arc is not selected.
+
+A vehicle that reaches $o_j$ before the request may wait and then perform the within-zone movement.
+Otherwise it begins the full approach after assignment. For $p_{ij}>\iota_j$:
+\begin{align}
+  t_j &\geq a_j+p_{ij}-(p_{ij}-\iota_j)\mu_{ij}-M(1-z_{ij}), \\
+  \mu_{ij} &\leq z_{ij}, \\
+  t_i+\rho_i(h)+p_{ij} &\leq a_j-\tau+M(1-\mu_{ij}),
+  \label{eq:preposition}
+\end{align}
+where $\tau$ is the policy invocation interval. Corresponding constraints apply to entry and depot
+arcs.
+
+The vehicle must commit by the rider's assignment deadline, and a timely pickup occurs within
+$\delta$ of the request:
+\begin{align}
+  t_j-p_{ij} &\leq \bar D_j+M(1-z_{ij}), \\
+  t_j &\leq a_j+\delta+M(1-w_j).
+  \label{eq:service}
+\end{align}
+
+Energy is propagated along each selected path. For direct rider and depot arcs:
+\begin{align}
+  b_j &\leq b_i-\epsilon(d_i,o_j)-\epsilon(o_j,d_j)+\bar B(1-z_{ij}), \\
+  b_j &\leq b_i-\epsilon(d_i,\mathrm{dep})-\epsilon(\mathrm{dep},o_j)
+        -\epsilon(o_j,d_j)+kg+2\bar B(1-x_{ijk}),
+  \label{eq:energy}
+\end{align}
+where $g$ is the energy added per charging increment. Total charging is limited by the aggregate
+capacity of the $n_C$ declared charge points:
+\begin{equation}
+  \textstyle\sum_{(i,j,k)}k x_{ijk}
+  \leq n_C\left\lfloor\frac{T_1-T_0}{\kappa}\right\rfloor.
+  \label{eq:charging}
+\end{equation}
+
+Additional valid inequalities limit total vehicle-minutes over the complete reporting window and over
+selected subintervals. The objective is
+\begin{equation}
+  \max \textstyle\sum_{j\in\mathcal R} w_j.
+  \label{eq:mip-objective}
+\end{equation}
+
+
+\section{Conditions and verification}
+\label{sec:conditions}
+
+\subsection{Attainable lower value}
+
+The conservative solution records the assigned vehicle, pickup time, departure time, service mode and
+request order for every selected rider. To establish $L$, the fleet follows that rider schedule inside
+the reporting window and follows the originating policy outside it, under the same operating rules.
+The latter condition reproduces the fleet state from which the benchmark instance was constructed.
+
+The relation $L\leq N^*$ requires execution to reproduce the scheduled rider outcomes. Reconciliation
+is performed rider by rider rather than only on the aggregate objective, because offsetting errors
+could leave the total unchanged.
+
+\subsection{Conditional upper value}
+
+The relation $N^*\leq U$ requires every trajectory in $\Sigma$ to be representable in the optimistic
+formulation. Three rules in the formulation are stricter than the declared operating rules and can
+exclude feasible trajectories:
+\begin{enumerate}
+  \item a vehicle that waits in a request zone must arrive one complete invocation interval before the
+        request;
+  \item pickups after $T_1$ are excluded, although a request arriving before $T_1$ may be collected
+        after the reporting window and still count as timely under the evaluation rules; and
+  \item each rider receives at most one quote.
+\end{enumerate}
+Until their joint effect is measured, $U$ is a conditional upper comparison rather than a certified
+upper bound on the unrestricted $N^*$.
+
+Each solve also reports two diagnostic counts: selected riders whose vehicle departs after the
+assignment deadline, and selected riders whose passenger journey duration does not match the travel
+matrix at the planned pickup time. Both counts must be zero.
+
+\end{document}
